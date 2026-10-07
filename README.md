@@ -63,9 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0   # full history so past commits are scanned too
+        uses: actions/checkout@v7
 
       - name: Run Secret Scan
         uses: accuknox/secret-scan-action-new@latest
