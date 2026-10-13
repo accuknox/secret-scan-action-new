@@ -67,7 +67,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run AccuKnox Secret Scan
-        uses: accuknox/secret-scan-action-new@v1.0.1
+        uses: accuknox/secret-scan-action-new@latest
         with:
           accuknox_token: ${{ secrets.ACCUKNOX_TOKEN }}
           accuknox_endpoint: ${{ secrets.ACCUKNOX_ENDPOINT }}
