@@ -1,0 +1,47 @@
+# Extended Gitleaks ruleset.
+#
+# Keeps every default Gitleaks rule and widens coverage:
+#   - aws-access-token / generic-api-key are replaced by copies with the same
+#     regex but no allowlists or stopwords and entropy lowered to 1, so example,
+#     placeholder and low-entropy values are reported too.
+#   - generic-password is added (stock Gitleaks has no password rule).
+#
+# Used by action.yml: gitleaks detect --source . --config <action path>/ruleset.yaml
+# Expect more findings than the default ruleset; review them before enforcing.
+
+title: Extended gitleaks ruleset
+
+extend:
+  useDefault: true
+  disabledRules:
+    - aws-access-token
+    - generic-api-key
+
+# Do not report this ruleset file itself
+allowlist:
+  paths:
+    - |-
+      (?:^|/)ruleset\.ya?ml$
+
+rules:
+  - id: aws-access-token-extended
+    description: Identified a pattern that may indicate AWS credentials, risking unauthorized cloud resource access and data breaches on AWS platforms.
+    regex: |-
+      \b((?:A3T[A-Z0-9]|AKIA|ASIA|ABIA|ACCA)[A-Z2-7]{16})\b
+    entropy: 1
+    keywords: [a3t, akia, asia, abia, acca]
+
+  - id: generic-api-key-extended
+    description: Detected a Generic API Key, potentially exposing access to various services and sensitive operations.
+    regex: |-
+      (?i)[\w.-]{0,50}?(?:access|auth|(?-i:[Aa]pi|API)|credential|creds|key|passw(?:or)?d|secret|token)(?:[ \t\w.-]{0,20})[\s'"]{0,3}(?:=|>|:{1,3}=|\|\||:|=>|\?=|,)[\x60'"\s=]{0,5}([\w.=-]{10,150}|[a-z0-9][a-z0-9+/]{11,}={0,3})(?:[\x60'"\s;]|\[nr]|$)
+    entropy: 1
+    keywords: [access, api, auth, key, credential, creds, passwd, password, secret, token]
+
+  - id: generic-password
+    description: Detected a hardcoded password assigned to a password-like variable.
+    # Value: 6-128 chars, any symbol except whitespace, quotes, ; and template/call syntax ( ) { } $
+    regex: |-
+      (?i)[\w.-]{0,50}?(?:passw(?:or)?d|pwd)(?:[\w.-]{0,20})[ \t]{0,5}(?:=|:{1,3}=|:|=>)[ \t]{0,5}['"\x60]?([^\s'"\x60;(){}$]{6,128})(?:['"\x60;\s]|\[nr]|$)
+    entropy: 1
+    keywords: [passwd, password, pwd]

@@ -28,25 +28,20 @@ inputs:
     required: false
     default: "true"
 
-  base_command:
-    description: "Override the scan command passed to --command (optional)"
-    required: false
-    default: ""
-
   scanner_version:
     description: "AccuKnox ASPM scanner CLI release to use"
     required: false
     default: "v0.15.1"
 
-  upload_results:
-    description: "Upload scan results as GitHub artifact"
-    required: false
-    default: "true"
-
   use_ruleset:
     description: "Scan with the bundled ruleset.yaml (true) or the built-in rules (false)"
     required: false
     default: "false"
+
+  upload_results:
+    description: "Upload scan results as GitHub artifact"
+    required: false
+    default: "true"
 
 runs:
   using: "composite"
@@ -59,7 +54,6 @@ runs:
         ACCUKNOX_ENDPOINT: ${{ inputs.accuknox_endpoint }}
         ADDITIONAL_ARGUMENTS: ${{ inputs.additional_arguments }}
         SOFT_FAIL: ${{ inputs.soft_fail }}
-        BASE_COMMAND: ${{ inputs.base_command }}
         SCANNER_VERSION: ${{ inputs.scanner_version }}
         USE_RULESET: ${{ inputs.use_ruleset }}
         RULESET_FILE: ${{ github.action_path }}/ruleset.yaml
@@ -86,7 +80,8 @@ runs:
           SOFT_FAIL_ARG="--softfail"
         fi
 
-        CMD="detect --source . --report-format sarif --report-path results.sarif --no-banner"
+        # The scanner only uploads ./results.json for gitleaks; the content is SARIF.
+        CMD="detect --source . --report-format sarif --report-path results.json --no-banner"
 
         if [ "${USE_RULESET//[$'\t\r\n ']}" = "true" ]; then
           if [ ! -f "$RULESET_FILE" ]; then
@@ -95,10 +90,6 @@ runs:
           fi
 
           CMD="$CMD --config '$RULESET_FILE'"
-        fi
-
-        if [ -n "$BASE_COMMAND" ]; then
-          CMD="$BASE_COMMAND"
         fi
 
         if [ -n "$ADDITIONAL_ARGUMENTS" ]; then
@@ -114,6 +105,6 @@ runs:
       uses: actions/upload-artifact@v4
       with:
         name: secret-scan-results
-        path: results.sarif
+        path: results.json
         if-no-files-found: warn
         retention-days: 30

@@ -67,7 +67,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run AccuKnox Secret Scan
-        uses:accuknox/secret-scan-action-new@main
+        uses: accuknox/secret-scan-action-new@v1.0.1
         with:
           accuknox_token: ${{ secrets.ACCUKNOX_TOKEN }}
           accuknox_endpoint: ${{ secrets.ACCUKNOX_ENDPOINT }}
@@ -86,17 +86,17 @@ jobs:
 | `accuknox_token` | AccuKnox API token | Yes | – |
 | `accuknox_endpoint` | AccuKnox Console endpoint | Yes | – |
 | `accuknox_label` | Label used to organize results in the Console | Yes | – |
-| `soft_fail` | Do not fail the workflow when secrets are found | No | `false` |
-| `additional_arguments` | Extra arguments appended to the scan command | No | `""` |
-| `base_command` | Replaces the default scan command (keep `--report-path results.json` for artifact upload) | No | `detect --source . --report-format sarif --report-path results.json --no-banner` |
+| `soft_fail` | Do not fail the workflow when secrets are found | No | `true` |
+| `additional_arguments` | Extra arguments appended to the scan command | No | `--no-git` |
 | `scanner_version` | AccuKnox ASPM scanner CLI release to use | No | `v0.15.1` |
+| `use_ruleset` | Scan with the bundled `ruleset.yaml` (all default rules plus a looser AWS/generic-API-key and a generic-password rule; expect more findings) instead of the built-in rules | No | `false` |
 | `upload_results` | Upload `results.json` as a GitHub artifact | No | `true` |
 
 ---
 
 ## 🎯 Scan Scope
 
-By default the scan covers the full git history. Pass `additional_arguments` to narrow it (optional):
+By default the scan covers current files only (`additional_arguments` defaults to `--no-git`). To scan git history, set `additional_arguments` to an empty string or one of the options below:
 
 | Goal | `additional_arguments` | Notes |
 |---|---|---|
@@ -105,7 +105,7 @@ By default the scan covers the full git history. Pass `additional_arguments` to 
 | Only the latest commit | `--log-opts="-1"` | |
 
 ```yaml
-- uses: accuknox/secret-scan-action-new@latest
+- uses: accuknox/secret-scan-action-new@v1.0.1
   with:
     accuknox_token: ${{ secrets.ACCUKNOX_TOKEN }}
     accuknox_endpoint: ${{ secrets.ACCUKNOX_ENDPOINT }}
@@ -136,7 +136,6 @@ By default the scan covers the full git history. Pass `additional_arguments` to 
 | No results in AccuKnox Console | Wrong label or endpoint | Verify the label and endpoint values |
 | Secrets in older commits are missed | Shallow checkout | Set `fetch-depth: 0` on `actions/checkout` |
 | Workflow fails even for minor findings | `soft_fail` not set | Set `soft_fail: true` to continue despite findings |
-| Artifact upload finds no file | Custom `base_command` writes elsewhere | Keep `--report-path results.json` |
 
 **Best practices**
 
