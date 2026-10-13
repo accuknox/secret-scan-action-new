@@ -56,7 +56,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  workflow_dispatch:
+    
 jobs:
   secret-scan:
     runs-on: ubuntu-latest
